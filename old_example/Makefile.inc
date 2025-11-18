@@ -1,2 +1,0 @@
-NEWFILE_COBJS = 
-APPL_COBJS += $(addprefix , $(NEWFILE_COBJS))
