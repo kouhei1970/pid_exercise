@@ -42,9 +42,9 @@ pup_device_t *color_sensor_right; // 右カラーセンサー
 #define CONTROL_PERIOD_US (CONTROL_PERIOD_MS * 1000) // 制御周期 [us]
 
 // ゲインはロボットの特性に合わせて調整してください
-const float kp = 2.0;    // 比例ゲイン (P)2.0
-const float ki = 10.00;  // 積分ゲイン (I)10.0
-const float kd = 0.03;   // 微分ゲイン (D)0.03
+const float kp = 1.0;    // 比例ゲイン (P)21
+const float ki = 0.1;  // 積分ゲイン (I)10.0
+const float kd = 0.1;   // 微分ゲイン (D)0.1
 const float delta_T = (float)CONTROL_PERIOD_MS / 1000.0f; // 制御周期 [s]
 
 // --- メイン関数 ---
