@@ -24,9 +24,9 @@ LEGO SPIKE Prime用のPID制御ライントレーサープログラムです。
 ### PIDゲイン
 
 ```c
-const float kp = 2.0;    // 比例ゲイン (P)
-const float ki = 10.00;  // 積分ゲイン (I)
-const float kd = 0.03;   // 微分ゲイン (D)
+const float kp = 1.0;    // 比例ゲイン (P)
+const float ki = 0.1;  // 積分ゲイン (I)
+const float kd = 0.1;   // 微分ゲイン (D)
 ```
 
 ### その他のパラメータ
