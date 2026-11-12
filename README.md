@@ -25,13 +25,14 @@ LEGO SPIKE Prime用のPID制御ライントレーサープログラムです。
 
 ```c
 const float kp = 1.0;    // 比例ゲイン (P)
-const float ki = 0.1;  // 積分ゲイン (I)
-const float kd = 0.1;   // 微分ゲイン (D)
+const float ki = 0.1;    // 積分ゲイン (I)
+const float kd = 0.1;    // 微分ゲイン (D)
 ```
 
 ### その他のパラメータ
 
-- `BASE_POWER`: 基本走行パワー（0〜100）デフォルト: 100
+- `BASE_POWER`: 基準の速さ（車輪が1秒間に回る角度、度/秒）デフォルト: 100
+- `MV_MAX`: 操作量 mv の上限 デフォルト: 100（mv は −MV_MAX 〜 +MV_MAX に制限されます）
 - `CONTROL_PERIOD_MS`: 制御周期（ミリ秒）デフォルト: 10ms
 
 ## 動作概要
@@ -47,15 +48,17 @@ const float kd = 0.1;   // 微分ゲイン (D)
 このプログラムでは、2つのカラーセンサーの反射光の差分を位置情報として使用し、以下の制御を行います：
 
 - **P（比例）制御**: 現在の偏差に応じて即座に修正
-- **I（積分）制御**: 過去の偏差の累積を考慮して定常偏差を削減
+- **I（積分）制御**: 過去の偏差の累積を考慮して定常偏差を削減（積分のたまりすぎを防ぐため、積分の項 `ki * integral` が `MV_MAX` を超えないように制限しています）
 - **D（微分）制御**: 偏差の変化率を考慮してオーバーシュートを抑制
 
 ## ビルド方法
 
-TOPPERSベースのビルドシステムを使用します。詳細なビルド手順については、TOPPERS/ASPカーネルのドキュメントを参照してください。
+授業で配布した SPIKE-RT の開発環境では、次の手順でビルドして書き込みます。
 
 ```bash
-make -f Makefile.inc
+./create-program.sh pid_exercise   # プログラム用のフォルダを作る（そこへこのリポジトリのファイルを置く）
+./build.sh pid_exercise            # ビルドする
+./write.sh pid_exercise            # ハブへ書き込む
 ```
 
 ## カスタマイズ
@@ -63,7 +66,7 @@ make -f Makefile.inc
 ロボットの特性やコースの条件に応じて、以下のパラメータを調整してください：
 
 - PIDゲイン（kp, ki, kd）
-- 基本走行速度（BASE_POWER）
+- 基準の速さ（BASE_POWER）
 - 制御周期（CONTROL_PERIOD_MS）
 - 目標反射光値（midpoint）
 
