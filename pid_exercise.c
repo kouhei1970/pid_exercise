@@ -37,14 +37,15 @@ pup_device_t *color_sensor_right; // 右カラーセンサー
 #define RIGHT_MOTOR       PBIO_PORT_ID_D
 
 // --- PIDゲインと定数 ---
-#define BASE_POWER 100       // 基本走行パワー (0〜100)
+#define BASE_POWER 100       // 基準の速さ [度/秒] (車輪が1秒間に回る角度)
+#define MV_MAX 100.0f        // 操作量 mv の上限
 #define CONTROL_PERIOD_MS 10 // 制御周期 [ms]
 #define CONTROL_PERIOD_US (CONTROL_PERIOD_MS * 1000) // 制御周期 [us]
 
 // ゲインはロボットの特性に合わせて調整してください
-const float kp = 1.0;    // 比例ゲイン (P)21
-const float ki = 0.1;  // 積分ゲイン (I)10.0
-const float kd = 0.1;   // 微分ゲイン (D)0.1
+const float kp = 1.0;    // 比例ゲイン (P)
+const float ki = 0.1;    // 積分ゲイン (I)
+const float kd = 0.1;    // 微分ゲイン (D)
 const float delta_T = (float)CONTROL_PERIOD_MS / 1000.0f; // 制御周期 [s]
 
 // --- メイン関数 ---
@@ -69,7 +70,7 @@ void Main(intptr_t exinf)
 
     // --- 初期化と設定 ---
     
-    // モーター設定 (A:左輪 反時計回り, B:右輪 時計回り)
+    // モーター設定 (C:左輪 反時計回り, D:右輪 時計回り)
     motor_left = pup_motor_init(LEFT_MOTOR, PUP_DIRECTION_COUNTERCLOCKWISE);
     motor_right = pup_motor_init(RIGHT_MOTOR, PUP_DIRECTION_CLOCKWISE);
     
@@ -102,33 +103,23 @@ void Main(intptr_t exinf)
         // 3. 積分項(Integral)の計算
         // I = I + ( (今回の誤差 + 前回の誤差) / 2 ) * delta_T
         integral += ((error + lasterror) / 2.0f * delta_T);
+        // 積分のたまりすぎを防ぐ: 積分の項 (ki * integral) が操作量の上限を超えないように切る
+        if (ki * integral >  MV_MAX) integral =  MV_MAX / ki;
+        if (ki * integral < -MV_MAX) integral = -MV_MAX / ki;
         
         // 4. PID制御量の計算 (ステアリング出力 mv)
         float derivative = (error - lasterror) / delta_T; // 微分項
         mv = kp * error + ki * integral + kd * derivative;
 
         // 5. ステアリング出力の制限
-        if (mv > 100.0f) mv = 100.0f;
-        if (mv < -100.0f) mv = -100.0f; 
+        if (mv >  MV_MAX) mv =  MV_MAX;
+        if (mv < -MV_MAX) mv = -MV_MAX;
 
         // 6. モーター速度の決定
         // mvが正: 右旋回 -> 左輪を速く
-        left_speed  = (int32_t)((float)BASE_POWER * ((float)BASE_POWER + mv) / (float)BASE_POWER);;
-        right_speed = (int32_t)((float)BASE_POWER * ((float)BASE_POWER - mv) / (float)BASE_POWER);
+        left_speed  = (int32_t)((float)BASE_POWER + mv);
+        right_speed = (int32_t)((float)BASE_POWER - mv);
 
-        #if 0
-        if (mv >= 0.0f) {
-            left_speed  = BASE_POWER;
-            right_speed = (int32_t)((float)BASE_POWER * ((float)BASE_POWER - mv) / (float)BASE_POWER);
-        } 
-        // mvが負: 明るい方へ戻る -> 右輪を速く
-        else {
-            left_speed  = (int32_t)((float)BASE_POWER * ((float)BASE_POWER + mv) / (float)BASE_POWER);
-            right_speed = BASE_POWER;
-        }
-        #endif
-
-        
         // 7. モーター駆動
         pup_motor_set_speed(motor_left, left_speed);
         pup_motor_set_speed(motor_right, right_speed);
