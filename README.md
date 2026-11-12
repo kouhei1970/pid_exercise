@@ -53,10 +53,12 @@ const float kd = 0.1;    // 微分ゲイン (D)
 
 ## ビルド方法
 
-TOPPERSベースのビルドシステムを使用します。詳細なビルド手順については、TOPPERS/ASPカーネルのドキュメントを参照してください。
+授業で配布した SPIKE-RT の開発環境では、次の手順でビルドして書き込みます。
 
 ```bash
-make -f Makefile.inc
+./create-program.sh pid_exercise   # プログラム用のフォルダを作る（そこへこのリポジトリのファイルを置く）
+./build.sh pid_exercise            # ビルドする
+./write.sh pid_exercise            # ハブへ書き込む
 ```
 
 ## カスタマイズ
